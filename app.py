@@ -5,7 +5,7 @@ import numpy as np
 st.title("Customer Churn Prediction App")
 
 # load model
-model = joblib.load("churn_model.joblib")
+model = joblib.load("model.joblib")
 
 st.success("Model loaded successfully ✅")
 
