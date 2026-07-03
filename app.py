@@ -37,13 +37,16 @@ total_charges = st.number_input("Total Charges", min_value=0.0, step=1.0)
 # -----------------------------
 if st.button("Predict Churn"):
 
-    # SAFE MODE (no crash even if model expects more features)
-    st.info("Prediction system is under update. Model is loaded correctly and ready.")
+    input_data = np.array([[tenure, monthly_charges, total_charges]])
 
-    # Optional debug view
-    st.write("Input values received:")
-    st.write({
-        "Tenure": tenure,
-        "Monthly Charges": monthly_charges,
-        "Total Charges": total_charges
-    })
+    try:
+        prediction = model.predict(input_data)
+
+        if prediction[0] == 1:
+            st.error("Customer will CHURN ❌")
+        else:
+            st.success("Customer will NOT churn ✅")
+
+    except Exception as e:
+        st.error("Prediction error due to model mismatch.")
+        st.write(str(e))
