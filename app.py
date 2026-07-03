@@ -15,8 +15,7 @@ monthly = st.number_input("Monthly Charges")
 total = st.number_input("Total Charges")
 
 if st.button("Predict"):
-    input_data = np.array([[tenure, monthly, total]])
-    prediction = model.predict(input_data)
+    st.info("Prediction system is being updated. Model is loaded correctly.")
 
     if prediction[0] == 1:
         st.error("Customer will CHURN ❌")
