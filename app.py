@@ -13,7 +13,7 @@ st.write("This is a Machine Learning web app for predicting customer churn.")
 # -----------------------------
 # Load Model Safely
 # -----------------------------
-MODEL_PATH = "model.joblib"
+MODEL_PATH = "churn_model.joblib"
 
 if not os.path.exists(MODEL_PATH):
     st.error("Model file not found in repository ❌")
