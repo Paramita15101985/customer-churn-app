@@ -121,57 +121,62 @@ if st.button("Predict Churn"):
 
 
         # ---------------------------------
-        # SHAP Explanation
-        # ---------------------------------
+# SHAP Explanation for Pipeline
+# ---------------------------------
 
-        st.subheader("🔍 Model Interpretation (SHAP)")
+st.subheader("🔍 Model Interpretation (SHAP)")
 
+try:
 
-        try:
+    classifier = model.named_steps["model"]
 
-            explainer = shap.Explainer(model)
-
-            shap_values = explainer(input_data)
-
-
-            feature_names = [
-                "Tenure",
-                "Monthly Charges",
-                "Total Charges"
-            ]
+    explainer = shap.TreeExplainer(classifier)
 
 
-            fig = plt.figure(figsize=(8,4))
+    shap_values = explainer.shap_values(input_data)
 
 
-            shap.plots.waterfall(
-                shap_values[0],
-                show=False
-            )
+    # Random Forest binary output
+    if isinstance(shap_values, list):
+
+        values = shap_values[1][0]
+
+        base_value = explainer.expected_value[1]
+
+    else:
+
+        values = shap_values[0]
+
+        base_value = explainer.expected_value
 
 
-            st.pyplot(
-                plt.gcf()
-            )
+    explanation = shap.Explanation(
+        values=values,
+        base_values=base_value,
+        data=input_data[0],
+        feature_names=[
+            "Tenure",
+            "Monthly Charges",
+            "Total Charges"
+        ]
+    )
 
 
-        except Exception as shap_error:
-
-            st.warning(
-                "SHAP explanation unavailable for this model."
-            )
-
-            st.write(shap_error)
+    shap.plots.waterfall(
+        explanation,
+        show=False
+    )
 
 
+    st.pyplot(
+        plt.gcf()
+    )
 
-    except Exception as e:
 
-        st.error(
-            "Prediction error ❌"
-        )
+except Exception as e:
 
-        st.write(e)
+    st.warning("SHAP explanation unavailable.")
+    st.write(e)
 
 
 
