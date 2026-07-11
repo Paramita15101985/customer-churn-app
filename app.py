@@ -101,83 +101,121 @@ if st.button("Predict Churn"):
 
 
         if prediction[0] == 1:
-
-            st.error(
-                "Customer is likely to CHURN ❌"
-            )
-
+            st.error("Customer is likely to CHURN ❌")
         else:
-
-            st.success(
-                "Customer is NOT likely to churn ✅"
-            )
+            st.success("Customer is NOT likely to churn ✅")
 
 
         if probability is not None:
-
             st.info(
                 f"Churn Probability: {probability*100:.2f}%"
             )
 
 
         # ---------------------------------
-# SHAP Explanation for Pipeline
-# ---------------------------------
+        # SHAP Explanation
+        # ---------------------------------
 
-st.subheader("🔍 Model Interpretation (SHAP)")
-
-try:
-
-    classifier = model.named_steps["model"]
-
-    explainer = shap.TreeExplainer(classifier)
+        st.subheader("🔍 Model Interpretation (SHAP)")
 
 
-    shap_values = explainer.shap_values(input_data)
+        try:
+
+            # If pipeline model
+            if hasattr(model, "named_steps"):
+
+                classifier = model.named_steps[
+                    list(model.named_steps.keys())[-1]
+                ]
+
+                explainer = shap.TreeExplainer(
+                    classifier
+                )
+
+            else:
+
+                explainer = shap.TreeExplainer(
+                    model
+                )
 
 
-    # Random Forest binary output
-    if isinstance(shap_values, list):
-
-        values = shap_values[1][0]
-
-        base_value = explainer.expected_value[1]
-
-    else:
-
-        values = shap_values[0]
-
-        base_value = explainer.expected_value
+            shap_values = explainer.shap_values(
+                input_data
+            )
 
 
-    explanation = shap.Explanation(
-        values=values,
-        base_values=base_value,
-        data=input_data[0],
-        feature_names=[
-            "Tenure",
-            "Monthly Charges",
-            "Total Charges"
-        ]
-    )
+            # Handle Random Forest binary output
+
+            if isinstance(shap_values, list):
+
+                values = shap_values[1][0]
+
+                base_value = explainer.expected_value[1]
 
 
-    shap.plots.waterfall(
-        explanation,
-        show=False
-    )
+            elif len(shap_values.shape) == 3:
+
+                values = shap_values[0,:,1]
+
+                base_value = explainer.expected_value[1]
 
 
-    st.pyplot(
-        plt.gcf()
-    )
+            else:
+
+                values = shap_values[0]
+
+                base_value = explainer.expected_value
 
 
-except Exception as e:
 
-    st.warning("SHAP explanation unavailable.")
-    st.write(e)
+            explanation = shap.Explanation(
 
+                values=values,
+
+                base_values=base_value,
+
+                data=input_data[0],
+
+                feature_names=[
+                    "Tenure",
+                    "Monthly Charges",
+                    "Total Charges"
+                ]
+            )
+
+
+            fig, ax = plt.subplots(
+                figsize=(8,4)
+            )
+
+
+            shap.plots.waterfall(
+                explanation,
+                show=False
+            )
+
+
+            st.pyplot(fig)
+
+
+
+        except Exception as shap_error:
+
+            st.warning(
+                "SHAP explanation unavailable for this model."
+            )
+
+            st.write(shap_error)
+
+
+
+    except Exception as e:
+
+        st.error(
+            "Prediction error ❌"
+        )
+
+        st.write(e)
 
 
 # ---------------------------------
@@ -188,7 +226,6 @@ st.markdown(
     """
     ---
     Developed using Machine Learning  
-    Algorithm: Random Forest / ML Pipeline  
     Project: Customer Churn Prediction
     """
 )
